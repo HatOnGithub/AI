@@ -72,64 +72,143 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+class Node:
+   """ Generic Node Class """
+   def __init__(self, state, parent, action, cost) :
+    self.parent = parent
+    self.state  = state
+    self.action = action
+    self.cost   = cost
+
+def PathTo(node : Node):
+    """ Recursive retrieval of the node's actions """
+    if node.parent == None: return []
+    else: return PathTo(node.parent) + [node.action]
+
+def sumOfBackwardsCost(node: Node) :
+    """ Sums up the cost of the node and its ancestors"""
+    if node.parent == None: return 0
+    else: return sumOfBackwardsCost(node.parent) + node.cost
+
 def depthFirstSearch(problem: SearchProblem):
-    """
-    Search the deepest nodes in the search tree first.
-
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    print("Start:", problem.getStartState())
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
-    """
-    "*** YOUR CODE HERE ***"
-
     # get starting position
-    start : (int,int) = problem.getStartState()
+    start = Node(problem.getStartState(), None, None, None)
 
-    # add the root 
-    parentMap = {start : (None, [])}
+    # create the memory and front
+    visited = set()
+    front = util.Stack()
 
-    stack = util.Stack()
+    # push the root into the front
+    front.push(start)
 
-    stack.push(start)
+    # while there are still nodes to be explored in the front
+    while not front.isEmpty():
 
-    while not stack.isEmpty():
+        # get the node from the front
+        node = front.pop()
+    
+        # if the node has not yet been visited
+        if node.state in visited: continue
         
-        node = stack.pop()
+        # add it to the memory
+        visited.add(node.state)
 
-        if problem.isGoalState(node):
-            return parentMap[node][1]
+        # check if it is the goal
+        if problem.isGoalState(node.state): return PathTo(node)
         
-        succs = problem.getSuccessors(node)
+        # expand the node
+        for child in problem.getSuccessors(node.state):
 
-        for (successor, action, _) in succs:
+            # create the node
+            successor, action, cost = child
+            expandedNode = Node(successor, node, action, cost)
 
-            if successor not in parentMap : 
-                stack.push(successor)
-            elif distanceToRoot(parentMap, successor) >= distanceToRoot(parentMap,node) + 1: 
-                continue
+            # push the node to the front
+            front.push(expandedNode)
 
-            parentMap[successor] = (parentMap[node][0], parentMap[node][1] + [action])
-
-
-def distanceToRoot(parentMap : dict, node):
-    if parentMap[node][0] == None: return 0
-    else: return distanceToRoot(parentMap, parentMap[node][0]) + 1
+    # if there is no solution/path, return None (fail)
+    return None
 
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # get starting position
+    start = Node(problem.getStartState(), None, None, None)
+
+    # create the memory and front
+    visited = set()
+    front = util.Queue()
+
+    # push the root into the front
+    front.push(start)
+
+    # while there are still nodes to be explored in the front
+    while not front.isEmpty():
+
+        # get the node from the front
+        node = front.pop()
+
+        # if the node has not yet been visited
+        if node.state in visited: continue
+
+        # add it to the memory
+        visited.add(node.state)
+
+        # check if it is the goal
+        if problem.isGoalState(node.state): return PathTo(node)
+        
+        # expand the node
+        for child in problem.getSuccessors(node.state):
+
+            # create the node
+            successor, action, cost = child
+            expandedNode = Node(successor, node, action, cost)
+
+            # push the node to the front
+            front.push(expandedNode)
+
+    # if there is no solution/path, return None (fail)
+    return None
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # get starting position
+    start = Node(problem.getStartState(), None, None, None)
+
+    # create the memory and front
+    visited = set()
+    front = util.PriorityQueue()
+
+    # push the root into the front
+    front.push(start, 0)
+
+    # while there are still nodes to be explored in the front
+    while not front.isEmpty():
+
+        # get the node from the front
+        node = front.pop()
+    
+        # if the node has not yet been visited
+        if node.state in visited: continue
+
+        # add it to the memory
+        visited.add(node.state)
+
+        # check if it is the goal
+        if problem.isGoalState(node.state): return PathTo(node)
+        
+        # expand the node
+        for child in problem.getSuccessors(node.state):
+
+            # create the node
+            successor, action, cost = child
+            expandedNode = Node(successor, node, action, cost)
+
+            # push the node to the front
+            front.push(expandedNode, sumOfBackwardsCost(expandedNode))
+
+    # if there is no solution/path, return None (fail)
+    return None
 
 def nullHeuristic(state, problem=None):
     """
@@ -141,8 +220,43 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # get starting position
+    start = Node(problem.getStartState(), None, None, None)
 
+    # create the memory and front
+    visited = set()
+    front = util.PriorityQueue()
+
+    # push the root into the front
+    front.push(start, 0)
+
+    # while there are still nodes to be explored in the front
+    while not front.isEmpty():
+
+        # get the node from the front
+        node = front.pop()
+    
+        # if the node has not yet been visited
+        if node.state in visited: continue
+
+        # add it to the memory
+        visited.add(node.state)
+
+        # check if it is the goal
+        if problem.isGoalState(node.state): return PathTo(node)
+        
+        # expand the node
+        for child in problem.getSuccessors(node.state):
+
+            # create the node
+            successor, action, cost = child
+            expandedNode = Node(successor, node, action, cost)
+
+            # push the node to the front
+            front.push(expandedNode, sumOfBackwardsCost(expandedNode) + heuristic(successor, problem))
+
+    # if there is no solution/path, return None (fail)
+    return None
 
 # Abbreviations
 bfs = breadthFirstSearch
